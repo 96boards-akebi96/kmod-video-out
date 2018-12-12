@@ -1,1 +1,1 @@
-source "drivers/uniphier/video-out/vocdrv_ld20/Kconfig"
+source "drivers/soc/uniphier/video-out/vocdrv_ld20/Kconfig"
