@@ -1,0 +1,36 @@
+CONFIG_UNIPHIER_VOCDRV ?= m
+CONFIG_UNIPHIER_VOCDRV_DEBUG ?= y
+
+ccflags-$(CONFIG_UNIPHIER_VOCDRV) += -DDEBUG
+ccflags-n += -DVOCD_LD11 -DVOCLIB_SLD11
+
+vocdrv-ld20-objs:= vocd_driver.o \
+		voc_intr/src/voclib_intr.o \
+		voc_vout/src/voclib_vout.o \
+		voc_vout/src/voclib_vout_aenc.o \
+		voc_vout/src/voclib_vout_afbcd.o \
+		voc_vout/src/voclib_vout_am.o \
+		voc_vout/src/voclib_vout_cvbs.o \
+		voc_vout/src/voclib_vout_debug.o \
+		voc_vout/src/voclib_vout_digout.o \
+		voc_vout/src/voclib_vout_idmac.o \
+		voc_vout/src/voclib_vout_mix.o \
+		voc_vout/src/voclib_vout_osd.o \
+		voc_vout/src/voclib_vout_primary_clock.o \
+		voc_vout/src/voclib_vout_primary_output.o \
+		voc_vout/src/voclib_vout_primary_sync.o \
+		voc_vout/src/voclib_vout_pvpll.o \
+		voc_vout/src/voclib_vout_pwm.o \
+		voc_vout/src/voclib_vout_stc.o \
+		voc_vout/src/voclib_vout_svpll.o \
+		voc_vout/src/voclib_vout_sync.o \
+		voc_vout/src/voclib_vout_user.o \
+		voc_vout/src/voclib_vout_util.o \
+		voc_vout/src/voclib_vout_vbo.o \
+		voc_vout/src/voclib_vout_video.o
+obj-$(CONFIG_UNIPHIER_VOCDRV) := vocdrv-ld20.o
+
+clean-files := Module.symvers modules.order *.ko *.mod.c *.o .*.cmd \
+	voc_intr/src/*.o voc_intr/src/.*.cmd \
+	voc_vout/src/*.o voc_vout/src/.*.cmd
+clean-dirs  := .tmp_versions

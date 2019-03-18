@@ -1,0 +1,4 @@
+
+config UNIPHIER_VOCDRV
+	tristate "VOC driver for UniPhier"
+	depends on ARCH_UNIPHIER
