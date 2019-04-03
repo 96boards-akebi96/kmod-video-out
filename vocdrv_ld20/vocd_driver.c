@@ -22,6 +22,7 @@
 #include <linux/semaphore.h>		/* for semaphore */
 #include <linux/uaccess.h>		/* for copy_from_user etc. */
 #include <linux/vmalloc.h>		/* for vmalloc_32_user() remap_vmalloc_range() */
+#include <linux/version.h>
 
 #include "voc_intr/include/voclib_intr.h"
 #include "voc_vout/include/voclib_vout.h"
@@ -1291,7 +1292,11 @@ static int vocdCreateCdev(struct voc_private *priv)
 		goto out_class;
 	}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 17, 0)
 	of_dma_configure(priv->chrdev, priv->chrdev->of_node);
+#else
+	of_dma_configure(priv->chrdev, priv->chrdev->of_node, true);
+#endif
 
 	return 0;
 
