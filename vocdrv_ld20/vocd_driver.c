@@ -1413,7 +1413,7 @@ static int voc_probe(struct platform_device *pdev)
 	vocd_libcmn_vir_addr = (uintptr_t)priv->base_voclib;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "voc_sg2");
-	priv->base_sg2 = devm_ioremap_resource(dev, res);
+	priv->base_sg2 = devm_ioremap(dev, res->start, resource_size(res));
 	if (IS_ERR(priv->base_sg2))
 		return PTR_ERR(priv->base_sg2);
 	gIoremapSg2Area		= (uintptr_t)priv->base_sg2;
