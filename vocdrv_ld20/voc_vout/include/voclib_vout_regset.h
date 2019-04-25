@@ -1,8 +1,6 @@
 /*
- * voclib_vout_regset.h
- *
- *  Created on: 2016/02/26
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_REGSET_H_
@@ -84,140 +82,6 @@ static inline uintptr_t voclib_vout_get_digvlatch_ad(uint32_t ch) {
     }
 #endif
     return ad;
-}
-
-static inline void voclib_vout_calc_pwm_regsetX(
-        struct voclib_vout_pwm_regset *result,
-        struct voclib_vout_pwm_work *param,
-        uint32_t sft,
-        uint32_t vdiv_set,
-        const struct voclib_vout_psync_work *psync,
-        uint32_t minmax) {
-    /*
-     vdiv_set = voclib_vout_set_field(31, 31, param->mode_vreset == 0 ? 1 : 0)
-            | voclib_vout_set_field(30, 30, param->polarity)
-            | voclib_vout_set_field(29, 29, param->cmask)
-            | voclib_vout_set_field(28, 28, param->mode_delay_hdiv)
-            | voclib_vout_set_field(27, 16, param->delay_vdiv)
-            | voclib_vout_set_field(13, 0, param->duty_vdiv);
-     */
-
-    uint32_t duty_hdiv_set;
-    uint32_t duty_vdiv_set;
-    uint32_t min;
-    uint32_t max;
-    uint32_t find;
-    uint32_t period;
-    uint32_t hret = psync->h_total >> sft;
-    min = voclib_vout_read_field(12, 0, minmax) + 1;
-    max = voclib_vout_read_field(28, 16, minmax) + 1;
-    period = param->vdiv;
-    period *= (param->hdiv);
-    period >>= sft;
-
-    duty_hdiv_set = voclib_vout_read_field(12, 0, param->duty_hdiv >> sft);
-    duty_vdiv_set = voclib_vout_read_field(13, 0, vdiv_set);
-
-    if (voclib_vout_read_field(31, 31, vdiv_set) == 1 ||
-            duty_hdiv_set == 0 || period == 0 || hret == 0 ||
-            duty_vdiv_set == 0) {
-
-    } else {
-        uint32_t duty;
-        uint32_t vperiod_min;
-        uint32_t vperiod_max;
-        uint32_t diff = 0;
-        uint32_t phase = 0;
-
-        uint32_t duty_hdiv_org;
-
-        vperiod_min = min;
-        vperiod_min *= hret;
-
-        vperiod_max = max;
-        vperiod_max *= hret;
-        vperiod_min <<= param->vsel;
-        vperiod_max <<= param->vsel;
-
-        duty = duty_hdiv_set;
-        duty *= duty_vdiv_set;
-        // check original condition
-        find = 1;
-        {
-            uint32_t vperiod_cmp;
-            vperiod_cmp = vperiod_min;
-            while (vperiod_cmp <= vperiod_max) {
-                uint32_t vperiod_r = vperiod_cmp % period;
-
-                if (vperiod_r != 0 && (vperiod_r % duty_hdiv_set) == 0
-                        && vperiod_r >= duty) {
-                    find = 0;
-                    break;
-                }
-                vperiod_cmp += hret;
-            }
-        }
-        if (find == 0) {
-            duty_hdiv_org = duty_hdiv_set;
-            if (duty_hdiv_set < duty_vdiv_set && duty_vdiv_set <= voclib_vout_mask_field(12, 0)) {
-                uint32_t tmp;
-                tmp = duty_hdiv_set;
-                duty_hdiv_set = duty_vdiv_set;
-                duty_vdiv_set = tmp;
-                duty_hdiv_org = duty_hdiv_set;
-                diff = 0;
-            } else {
-                diff = 1;
-                if (duty_hdiv_org >= voclib_vout_mask_field(12, 0)) {
-                    phase = 1;
-                }
-            }
-
-            do {
-                uint32_t vperiod_cmp;
-                find = 1;
-
-                vperiod_cmp = vperiod_min;
-                if (phase == 0) {
-                    duty_hdiv_set = duty_hdiv_org + diff;
-                } else {
-                    duty_hdiv_set = duty_hdiv_org - diff;
-                }
-                while (vperiod_cmp <= vperiod_max) {
-                    uint32_t vperiod_r = vperiod_cmp % period;
-                    if (vperiod_r != 0 && (vperiod_r % duty_hdiv_set) == 0) {
-                        find = 0;
-                        break;
-                    }
-                    vperiod_cmp += hret;
-                }
-                if (find == 0) {
-                    if (phase == 0 && duty_hdiv_org + diff < voclib_vout_mask_field(12, 0)) {
-                        diff++;
-                    } else {
-                        if (phase == 0) {
-                            diff = 1;
-                            phase = 1;
-                        } else {
-                            diff++;
-                            if (duty_hdiv_org <= diff + 1)
-                                break;
-                        }
-                    }
-                }
-            } while (find == 0);
-            duty_vdiv_set = (uint32_t) ((duty + duty_hdiv_set - 1) / duty_hdiv_set);
-        }
-    }
-    result->vselvalue = voclib_vout_set_field(31, 30, param->vsel)
-            | voclib_vout_set_field(29, 16, param->vdiv)
-            | voclib_vout_set_field(15, 0, param->hdiv >> sft);
-    result->duty_delay = voclib_vout_set_field(28, 16,
-            param->delay_hdiv >> sft)
-            | voclib_vout_set_field(12, 0, duty_hdiv_set);
-
-    result->vdiv = voclib_vout_set_field(13, 0, duty_vdiv_set) |
-            voclib_vout_set_field(31, 14, voclib_vout_read_field(31, 14, vdiv_set));
 }
 
 static inline uintptr_t voclib_vout_get_pwm_address(uint32_t ch, uint32_t pno) {
@@ -732,7 +596,7 @@ static inline void voclib_vout_calc_vmix_plane(
         struct voclib_vout_alphamap_work *amap1,
         struct voclib_vout_osd_mute_work *osdmute0,
         struct voclib_vout_osd_mute_work *osdmute1,
-        uint32_t afbcd_assign) {
+        uint32_t reserve_assign) {
     uint32_t p[5];
     uint32_t ps[5];
     uint32_t op[4];
@@ -831,13 +695,13 @@ static inline void voclib_vout_calc_vmix_plane(
         if (amap0->enable) {
             v0_amapen = 1;
             /*
-             * afbcd_assign
+             * reserve_assign
              * bit0 = use OSD0
              * bit1 = use OSD1
              * bit2 = use Video0
              * bit3 = use Video1
              */
-            if ((afbcd_assign & (1u << amap0->osd_select)) != 0) {
+            if ((reserve_assign & (1u << amap0->osd_select)) != 0) {
                 v0_amapen = 0;
             }
             if ((amap0->osd_select == 0 ?
@@ -853,7 +717,7 @@ static inline void voclib_vout_calc_vmix_plane(
         // video1
         if (amap1->enable) {
             v1_amapen = 1;
-            if ((afbcd_assign & (1u << amap1->osd_select)) != 0) {
+            if ((reserve_assign & (1u << amap1->osd_select)) != 0) {
                 v1_amapen = 0;
             }
             if ((amap1->osd_select == 0 ?
@@ -2291,7 +2155,7 @@ static inline void voclib_vout_calc_regset_vconfig(
         struct voclib_vout_video_display_work *vdisp,
         struct voclib_vout_video_border_lib_if_t *vmute,
         struct voclib_vout_video_memoryformat_work *memfmt,
-        uint32_t afbcd_assign,
+        uint32_t reserve_assign,
         struct voclib_vout_psync_work *psync,
         uint32_t vreverse
         ) {
@@ -2321,7 +2185,7 @@ static inline void voclib_vout_calc_regset_vconfig(
             align_width = 63;
             break;
     }
-    if (afbcd_assign != 0) {
+    if (reserve_assign != 0) {
         align = 31;
         align_width = 0;
     }
@@ -2740,17 +2604,17 @@ struct voclib_vout_regset_osd_pixelmode {
 
 static inline void voclib_vout_calc_osd_pixelmode(uint32_t ch,
         struct voclib_vout_regset_osd_pixelmode *regset, uint32_t amap_usage,
-        uint32_t afbcd_assign, struct voclib_vout_osd_memoryformat_work * osdmem) {
+        uint32_t reserve_assign, struct voclib_vout_osd_memoryformat_work * osdmem) {
     uint32_t compressed;
 #ifdef VOCLIB_SLD11
-    afbcd_assign = 0;
+    reserve_assign = 0;
     compressed = osdmem->compress;
 #else
     compressed = 0;
 #endif
 
-    if ((afbcd_assign & (1u << ch)) != 0) {
-        // fix to AFBCD
+    if ((reserve_assign & (1u << ch)) != 0) {
+        //
         regset->pixelmode = voclib_vout_set_field(4, 4, osdmem->gamma)
                 | voclib_vout_set_field(3, 1, 3)
                 | voclib_vout_set_field(0, 0, 0);
@@ -2826,7 +2690,7 @@ static inline void voclib_vout_calc_osd_pixelmode(uint32_t ch,
 
         regset->indexcolormode = voclib_vout_set_field(8, 8, use_amap)
                 | voclib_vout_set_field(3, 2, indexmode)
-                | voclib_vout_set_field(0, 0, osdmem->lut_bit);
+                | voclib_vout_set_field(0, 0, osdmem->gamma != 0 ? 1 : osdmem->lut_bit);
 
         regset->rowcolormode = voclib_vout_set_field(9, 8, order)
                 | voclib_vout_set_field(7, 4, osdmem->mode_alpha)
@@ -3215,7 +3079,7 @@ static inline void voclib_vout_calc_osd_planesize(
         const struct voclib_vout_psync_work *psync0,
         const struct voclib_vout_psync_work *psync1,
         const struct voclib_vout_dataflow_work *dflow,
-        uint32_t afbcd_usage,
+        uint32_t reserve_usage,
         uint32_t vreverse) {
     struct voclib_vout_start_end disp_area[4];
     struct voclib_vout_start_end video_area[2];
@@ -3263,13 +3127,13 @@ static inline void voclib_vout_calc_osd_planesize(
         valign_width = 0;
     }
 #else
-    // if AFBCD 32bit align
+
     halign = 0;
     valign = 0;
     halign_width = 0;
     valign_width = 0;
 
-    if (((afbcd_usage >> (osdno))&1) != 0) {
+    if (((reserve_usage >> (osdno))&1) != 0) {
         halign = 5; //32bit
     }
 #endif
@@ -3287,7 +3151,7 @@ static inline void voclib_vout_calc_osd_planesize(
         odisp_c.crop_height1 = osdmem->crop_height1;
     }
     // copy width0 etc to width1
-    if (odisp_c.mode_id < 2 || ((afbcd_usage >> osdno)&1) != 0) {
+    if (odisp_c.mode_id < 2 || ((reserve_usage >> osdno)&1) != 0) {
         odisp_c.crop_height1 = odisp_c.crop_height0;
         odisp_c.crop_width1 = odisp_c.crop_width0;
         odisp_c.disp_height1 = odisp_c.disp_height0;
@@ -3822,7 +3686,7 @@ static inline void voclib_vout_calc_osd_planesize(
     regset->vddac0 = voclib_vout_set_field(31, 31, 1)
             | voclib_vout_set_field(15, 0, odisp_c.vscale_init_ctop);
     regset->vddacb = voclib_vout_set_field(15, 0, odisp_c.vscale_init_cbot);
-    if (odisp_c.mode_id < 2 || ((afbcd_usage >> osdno)&1) != 0) {
+    if (odisp_c.mode_id < 2 || ((reserve_usage >> osdno)&1) != 0) {
 
         regset->planesizeR = regset->planesize;
         regset->videoR_harea = regset->video_harea;
@@ -4090,7 +3954,7 @@ static inline uint32_t voclib_vout_regset_osd_colorcnv_func(
 
 static inline void voclib_vout_calc_osd_color(uint32_t ch,
         struct voclib_vout_regset_osd_color *regset, uint32_t amap_usage,
-        uint32_t afbcd_usage, uint32_t vmix_color, uint32_t lmix_color,
+        uint32_t reserve_usage, uint32_t vmix_color, uint32_t lmix_color,
         uint32_t amix_color, uint32_t matrix_mode,
         struct voclib_vout_osd_memoryformat_work *osdmem,
         struct voclib_vout_osd_display_work *osddisp,
@@ -4136,7 +4000,7 @@ static inline void voclib_vout_calc_osd_color(uint32_t ch,
 
     // 0: YUV 1:RGB
     src_rgb_or_yuv = osdmem->rgb_or_yuv;
-    if ((afbcd_usage & (1u << ch)) != 0) {
+    if ((reserve_usage & (1u << ch)) != 0) {
         src_rgb_or_yuv = 1;
     }
     if (src_rgb_or_yuv != osdout_format_rgb) {
@@ -5456,7 +5320,8 @@ static inline uint32_t voclib_vout_regset_outformat_sync(
         const struct voclib_vout_outformat_work *ofmt0,
 #endif
         const struct voclib_vout_regset_outformat_psync *regset0,
-        const struct voclib_vout_regset_outformat_psync *regset1, uint32_t * mid_event) {
+        const struct voclib_vout_regset_outformat_psync *regset1, uint32_t * mid_event
+        ) {
     uint32_t ch;
     uint32_t chg = 0;
 
@@ -5613,7 +5478,8 @@ static inline uint32_t voclib_vout_regset_psync_clock(
     uint32_t chg;
     const struct voclib_vout_regset_psync_clock *regset;
     chg = 0;
-    for (pno = 0; pno < 2; pno++) {
+    for (pno = 0; pno < 2
+            ; pno++) {
         uint32_t prev;
         uint32_t ch2;
         uint32_t subch;
@@ -5854,7 +5720,7 @@ static inline void voclib_vout_calc_video_stride(
     uint32_t block;
     block = memfmt->block0;
 #else
-//    block = 0;
+    //    block = 0;
 #endif
 
     align = 2;
@@ -6646,6 +6512,8 @@ static inline uint32_t voclib_vout_regset_psync_hv_vtotal(
     }
     return chg;
 }
+
+
 
 
 

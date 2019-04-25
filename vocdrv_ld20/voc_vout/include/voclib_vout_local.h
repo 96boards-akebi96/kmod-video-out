@@ -1,8 +1,6 @@
 /*
- * voclib_vout_local.h
- *
- *  Created on: 2015/12/15
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_LOCAL_H_
@@ -10,6 +8,7 @@
 
 #include "voclib_vout_user.h"
 #include "voclib_vout_regmap.h"
+
 
 
 #define VOCLIB_VOUT_VPLL8K_MODE_BASE (0)
@@ -270,9 +269,10 @@ static const int VOCLIB_VOUT_CONV444MODE1 = 26;
 // update mode (0: imm 1:up)
 #define VOCLIB_VOUT_P0UPDATEMODE (361)
 #define VOCLIB_VOUT_P1UPDATEMODE (362)
-#define VOCLIB_VOUT_AFBCD_CMD (363)
-#define VOCLIB_VOUT_AFBCD_STATE (364)
-#define VOCLIB_VOUT_AFBCD_PARAM (365)
+
+#define VOCLIB_VOUT_RESERVE_CMD (363)
+#define VOCLIB_VOUT_RESERVE_STATE (364)
+#define VOCLIB_VOUT_RESERVE_PARAM (365)
 // 3word
 
 #define VOCLIB_VOUT_STRIDELEN_WORK0 (368)
@@ -322,9 +322,8 @@ static const int VOCLIB_VOUT_CONV444MODE1 = 26;
 
 #define VOCLIB_VOUT_PWM_SFT_SET (430)
 
-
-
 #define VOCLIB_VOUT_PWMSET_MODE (431)
+
 
 // duty_hdiv, pulse_hdiv (not change)
 
@@ -600,7 +599,6 @@ inline static void voclib_vout_debug_info(const char *msg) {
 #define voclib_vout_debug_success(name)
 #define voclib_vout_debug_info(msg)
 #endif
-
 
 
 

@@ -1,8 +1,6 @@
 /*
- * voclib_vout_mix.c
- *
- *  Created on: 2016/01/18
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #include "../include/voclib_vout.h"
@@ -188,6 +186,7 @@ uint32_t voclib_vout_asyncmix_set(
         chg = 1;
         prev.bt = param->color_bt;
     }
+
     if (chg != 0) {
         voclib_vout_work_set_asyncmix(&curr);
     }

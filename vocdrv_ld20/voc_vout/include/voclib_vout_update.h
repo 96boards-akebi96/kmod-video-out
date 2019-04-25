@@ -1,8 +1,6 @@
 /*
- * voclib_vout_update.h
- *
- *  Created on: 2016/03/04
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_UPDATE_H_
@@ -32,7 +30,7 @@ enum voclib_vout_update_event {
     VOCLIB_VOUT_CHG_LMIX = 18,
     VOCLIB_VOUT_CHG_AMAP0 = 19,
     VOCLIB_VOUT_CHG_AMAP1 = 20,
-    VOCLIB_VOUT_CHG_AFBCD_ASSIGN = 21,
+    VOCLIB_VOUT_CHG_RESERVE_ASSIGN = 21,
     VOCLIB_VOUT_CHG_VOPINFO = 22,
     VOCLIB_VOUT_CHG_PSYNC0 = 23,
     VOCLIB_VOUT_CHG_PSYNC1 = 24,
@@ -83,7 +81,7 @@ uint32_t voclib_vout_update_event(
         struct voclib_vout_lvmix_sub_work *mix_sub_input,
         struct voclib_vout_lvmix_work *mix_input,
         struct voclib_vout_alphamap_work *amap_input,
-        uint32_t afbcd_assign,
+        uint32_t reserve_assign,
         struct voclib_vout_vopinfo_lib_if_t *vop_input,
         struct voclib_vout_psync_work *psync_input,
         struct voclib_vout_osd_display_work *osddisp_input,

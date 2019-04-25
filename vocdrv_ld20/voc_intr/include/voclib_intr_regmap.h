@@ -1,8 +1,6 @@
 /*
- * voclib_intr_regmap.h
- *
- *  Created on: 2016/01/12
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_INTR_REGMAP_H_

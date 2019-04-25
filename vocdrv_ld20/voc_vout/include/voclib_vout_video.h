@@ -1,8 +1,6 @@
 /*
- * voclib_vout_video.h
- *
- *  Created on: 2016/01/18
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_VIDEO_H_
@@ -78,8 +76,6 @@ struct voclib_vout_video_memoryformat_lib_if_t {
     uint32_t bit_ys;
     uint32_t mode_subpixel;
     uint32_t mode_endian;
-//    uintptr_t banksize_div0;
-//    uintptr_t banksize_div1;
     uint32_t banksize_div0;
     uint32_t banksize_div1;
     uint32_t bankcount;

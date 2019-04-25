@@ -1,8 +1,6 @@
 /*
- * voclib_vout_local_dataflow.h
- *
- *  Created on: 2016/02/23
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_LOCAL_DATAFLOW_H_

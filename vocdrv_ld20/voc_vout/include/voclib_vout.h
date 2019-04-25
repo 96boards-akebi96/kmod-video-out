@@ -1,8 +1,6 @@
 /*
- * voclib_vout.h
- *
- *  Created on: 2015/12/15
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_H_
@@ -31,7 +29,7 @@
 
 #ifndef VOCLIB_SLD11
 #include "voclib_vout_vbo.h"
-#include "voclib_vout_afbcd.h"
+
 #else
 #include "voclib_vout_lvds.h"
 #endif

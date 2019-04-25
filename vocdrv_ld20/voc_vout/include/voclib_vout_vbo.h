@@ -1,8 +1,6 @@
 /*
- * voclib_vout_vbo.h
- *
- *  Created on: 2016/01/18
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_VBO_H_

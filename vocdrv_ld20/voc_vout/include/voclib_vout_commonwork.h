@@ -1,8 +1,6 @@
 /*
- * voclib_commonwork.h
- *
- *  Created on: 2015/12/07
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_COMMONWORK_H_
@@ -1590,7 +1588,9 @@ static inline void voclib_vout_work_set_dataflow(
 
 static inline void voclib_vout_work_load_dataflow(
         struct voclib_vout_dataflow_work *param) {
+
     uint32_t d[1];
+
     voclib_vout_common_work_load(VOCLIB_VOUT_DATAFLOW, 1, d);
     param->osd0_sync = voclib_vout_read_field(1, 0, d[0]);
     param->osd1_sync = voclib_vout_read_field(3, 2, d[0]);
@@ -2294,13 +2294,13 @@ struct voclib_vout_mixplane_work {
 };
 
 /**
- * get AFBCD work
+ * get work
  * bit0 = OSD0
  * bit1 = OSD1
  * bit2 = VIDEO0
  * bit3 = VIDEO1
  */
-static inline uint32_t voclib_vout_work_get_afbcd_assign(void) {
+static inline uint32_t voclib_vout_work_get_reserved_assign(void) {
 #ifdef VOCLIB_SLD11
     return 0;
 #else
@@ -2656,7 +2656,7 @@ static inline void voclib_vout_calc_hdelay_normal(
     if (freq_sft < hdiv || (freq_sft - hdiv) > 16) {
         return;
     }
-    sft_value = freq_sft-hdiv;
+    sft_value = freq_sft - hdiv;
 
     result->min = hend0 - ((hend0 - hstart0) >> hdiv);
     // check read end timing
@@ -2703,7 +2703,7 @@ static inline void voclib_vout_calc_hdelay_normal(
     wp0 = (wsize0) % fifo_s;
 
     wp1 = (wsize_total) % fifo_s;
-    if(sft_value > 16){
+    if (sft_value > 16) {
         sft_value = 16;
     }
 

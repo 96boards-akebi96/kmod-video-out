@@ -8,7 +8,6 @@ local_flags     += -I$(this_dir)/include
 
 local_sources   += src/voclib_vout.c
 local_sources   += src/voclib_vout_aenc.c
-local_sources   += src/voclib_vout_afbcd.c
 local_sources   += src/voclib_vout_am.c
 local_sources   += src/voclib_vout_cvbs.c
 local_sources   += src/voclib_vout_debug.c

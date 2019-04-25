@@ -1,8 +1,6 @@
 /*
- * voclib_intr_user.h
- *
- *  Created on: 2016/03/17
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_INTR_USER_H_

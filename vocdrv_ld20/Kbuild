@@ -8,12 +8,12 @@ vocdrv-ld20-objs:= vocd_driver.o \
 		voc_intr/src/voclib_intr.o \
 		voc_vout/src/voclib_vout.o \
 		voc_vout/src/voclib_vout_aenc.o \
-		voc_vout/src/voclib_vout_afbcd.o \
 		voc_vout/src/voclib_vout_am.o \
 		voc_vout/src/voclib_vout_cvbs.o \
 		voc_vout/src/voclib_vout_debug.o \
 		voc_vout/src/voclib_vout_digout.o \
 		voc_vout/src/voclib_vout_idmac.o \
+		voc_vout/src/voclib_vout_lvds.o \
 		voc_vout/src/voclib_vout_mix.o \
 		voc_vout/src/voclib_vout_osd.o \
 		voc_vout/src/voclib_vout_primary_clock.o \

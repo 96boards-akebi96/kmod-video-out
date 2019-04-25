@@ -1,8 +1,6 @@
 /*
- * voclib.c
- *
- *  Created on: 2015/12/10
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 #include "../include/voclib_vout.h"
 #include "../include/voclib_vout_local.h"
@@ -39,6 +37,7 @@ uint32_t voclib_vout_dataflow_set(
         voclib_vout_debug_success(fname);
         return VOCLIB_VOUT_RESULT_OK;
     }
+
 
     voclib_vout_work_set_dataflow(&(dec_result.curr_param));
 
@@ -305,7 +304,8 @@ void voclib_vout_init() {
         uint32_t j = 0;
         voclib_vout_common_work_store(i, 1, &j);
     }
-    // init afbcd select
+
+    // init select
     voclib_voc_write32(0x5f0286c8, 0);
     for (i = 0; i < VOCLIB_VOUT_PRIMARY_SYNC_NUM; i++) {
         // init vprotect ON
@@ -509,7 +509,6 @@ uint32_t voclib_vout_vopinfo_set(
 }
 
 uint32_t voclib_vout_subcore_clock_ctl(uint32_t subcore_select, uint32_t enable) {
-    // ToDo
     if (subcore_select >= 32) {
         return VOCLIB_VOUT_RESULT_PARAMERROR;
     }

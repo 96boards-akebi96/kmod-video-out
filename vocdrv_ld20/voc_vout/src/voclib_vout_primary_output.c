@@ -1,8 +1,6 @@
 /*
- * voclib_primary_set.c
- *
- *  Created on: 2015/10/01
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #include "../include/voclib_vout.h"
@@ -148,6 +146,8 @@ uint32_t voclib_vout_primary_outformat_set(uint32_t primary_no, uint32_t enable,
         prev.mode_3dout = param->mode_3dout;
 
     }
+
+
     if (chg == 0) {
         voclib_vout_debug_success(fname);
         return VOCLIB_VOUT_RESULT_OK;
@@ -223,6 +223,9 @@ uint32_t voclib_vout_primary_outformat_set(uint32_t primary_no, uint32_t enable,
     }
      */
     prev.vreverse = param->v_reverse;
+
+
+
     voclib_vout_update_event(
             vlatch_flag,
             VOCLIB_VOUT_CHG_OFMT0 + primary_no

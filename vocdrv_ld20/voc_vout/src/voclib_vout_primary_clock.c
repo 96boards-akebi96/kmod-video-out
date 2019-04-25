@@ -1,8 +1,6 @@
 /*
- * voclib_pvpll.c
- *
- *  Created on: 2015/09/14
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #include "../include/voclib_vout.h"
@@ -625,7 +623,7 @@ uint32_t voclib_vout_primary_clock_set(uint32_t device_no, uint32_t enable,
         // 1u<<1  = 0 to 1
         // 0 to 21
         if (pvparam.k < (1u << 21)) {
-            dkin = (((uint64_t)pvparam.m) << 20) + pvparam.k;
+            dkin = (((uint64_t) pvparam.m) << 20) + pvparam.k;
         } else {
             dkin = (((uint64_t) (pvparam.m - 1)) << 20) + (pvparam.k & ((1u << 21) - 1));
         }
@@ -1077,6 +1075,8 @@ uint32_t voclib_vout_primary_clock_set(uint32_t device_no, uint32_t enable,
                     device_no == 0 ? 0 : 8, en_pat));
         }
 #endif
+
+
         voclib_vout_update_event(
                 0, // vlatch_flag
                 VOCLIB_VOUT_CHG_CLK0 + device_no

@@ -1,8 +1,6 @@
 /*
- * voclib_svpll_table.h
- *
- *  Created on: 2015/12/11
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_SVPLL_TABLE_H_

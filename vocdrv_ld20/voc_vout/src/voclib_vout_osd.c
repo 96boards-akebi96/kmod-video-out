@@ -1,8 +1,6 @@
 /*
- * voclib_osd.c
- *
- *  Created on: 2015/09/24
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #include "../include/voclib_vout.h"
@@ -344,6 +342,7 @@ uint32_t voclib_vout_osd_memoryformat_set(uint32_t osd_no,
         prev.mode_alpha = param->mode_alpha;
         chg |= 2;
     }
+
     if (bit_scale_o == 2) {
         if (param->mode_extend > 1) {
             voclib_vout_debug_error(fname, "mode_extend");
@@ -357,15 +356,20 @@ uint32_t voclib_vout_osd_memoryformat_set(uint32_t osd_no,
             prev.expand = param->mode_extend;
             chg |= 2;
         }
-        if (ct == 3) {
-            if (param->mode_subpixel > 3) {
-                voclib_vout_debug_error(fname, "mode_subpixel");
-                return VOCLIB_VOUT_RESULT_PARAMERROR;
-            }
-            if (prev.order != param->mode_subpixel) {
-                prev.order = param->mode_subpixel;
-                chg |= 2;
-            }
+    } else {
+        if (prev.expand != 0) {
+            prev.expand = 0;
+            chg |= 2;
+        }
+    }
+    if (ct == 3) {
+        if (param->mode_subpixel > 3) {
+            voclib_vout_debug_error(fname, "mode_subpixel");
+            return VOCLIB_VOUT_RESULT_PARAMERROR;
+        }
+        if (prev.order != param->mode_subpixel) {
+            prev.order = param->mode_subpixel;
+            chg |= 2;
         }
     }
     if (param->mode_endian > 3) {
@@ -386,6 +390,7 @@ uint32_t voclib_vout_osd_memoryformat_set(uint32_t osd_no,
         voclib_vout_debug_error(fname, "bank_size");
         return VOCLIB_VOUT_RESULT_PARAMERROR;
     }
+
     if (prev.crop_left != param->crop_left) {
         prev.crop_left = param->crop_left;
         chg |= 2;
@@ -910,6 +915,7 @@ uint32_t voclib_vout_osd_display_set(uint32_t osd_no, uint32_t enable,
         chg = 1;
         prev.border = bd;
     }
+
 
     if (chg != 0) {
 

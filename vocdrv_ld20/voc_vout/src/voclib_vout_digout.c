@@ -1,8 +1,6 @@
 /*
- * voclib_vout_digout.c
- *
- *  Created on: 2016/01/18
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #include "../include/voclib_vout.h"

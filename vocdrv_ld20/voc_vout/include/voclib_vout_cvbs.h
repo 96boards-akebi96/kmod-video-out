@@ -1,70 +1,11 @@
 /*
- * voclib_vout_cvbs.h
- *
- *  Created on: 2016/01/18
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_CVBS_H_
 #define INCLUDE_VOCLIB_VOUT_CVBS_H_
 
-uint32_t voclib_vout_mv_support_check(void
-        );
-
-struct voclib_vout_mvmode_lib_if_t {
-    uint32_t psagsel;
-    uint32_t bp;
-    uint32_t csproc;
-    uint32_t agc;
-    uint32_t hsredu;
-    uint32_t vsredu;
-};
-
-uint32_t voclib_vout_mvmode_set(
-        const struct voclib_vout_mvmode_lib_if_t *param
-        );
-
-struct voclib_vout_struct_mv_lib_if_t {
-    uint32_t formata;
-    uint32_t spacinga;
-    uint32_t locationa;
-    uint32_t durationa;
-    uint32_t formatb;
-    uint32_t spacingb;
-    uint32_t locationb;
-    uint32_t durationb;
-    uint32_t agcformat;
-    uint32_t agcoutline;
-    uint32_t bpline1;
-    uint32_t bpline2;
-    uint32_t coline;
-    uint32_t colcnt;
-    uint32_t colspace;
-    uint32_t bvspace;
-    uint32_t bvfirst;
-    uint32_t tvspace;
-    uint32_t tvfirst;
-    uint32_t bphaseon1;
-    uint32_t bphaseon2;
-    uint32_t bphaseon3;
-    uint32_t duration1;
-    uint32_t duration2;
-    uint32_t duration3;
-    uint32_t bason;
-
-    uint32_t co1st;
-
-    uint32_t co2nd;
-
-    uint32_t co3rd;
-    uint32_t co4th;
-    uint32_t co5th;
-};
-
-uint32_t voclib_vout_mv_set(
-        uint32_t update_flag,
-        const struct voclib_vout_struct_mv_lib_if_t *param
-        );
 uint32_t voclib_vout_cvbs_border_set(
         uint32_t cvbs_no,
         uint32_t mode_border,

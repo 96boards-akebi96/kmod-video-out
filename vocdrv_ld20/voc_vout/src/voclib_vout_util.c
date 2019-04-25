@@ -1,8 +1,6 @@
 /*
- * voclib_util.c
- *
- *  Created on: 2015/09/14
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 #include "../include/voclib_vout.h"
 #include "../include/voclib_vout_local.h"
@@ -362,16 +360,6 @@ if (((event | chk_pat) & \
                 voclib_vout_load_region(&region);\
             }
 
-#ifdef VOCLIB_SLD11
-#define VOCLIB_VOUT_LOAD_AFBCD_ASSIGN
-#else
-#define VOCLIB_VOUT_LOAD_AFBCD_ASSIGN \
-            if (((event |chk_pat) & \
-            voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN)) == 0) {\
-                afbcd_assign = voclib_vout_work_get_afbcd_assign();\
-                chk_pat |= voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN);\
-            }
-#endif
 
 #ifdef VOCLIB_SLD11
 #define VOCLIB_VOUT_LOAD_CLK1
@@ -863,6 +851,7 @@ static inline void voclib_vout_calc_outfmt_vmin(
         regset->video2_vstart = vstart1;
         regset->video2_vend = vend1;
     }
+
     regset->vmix_vstart =
             dflow->vmix_assign == 1 ?
             vstart0 : (dflow->vmix_assign == 2 ? vstart1 : 0);
@@ -1500,7 +1489,6 @@ static inline uint32_t voclib_vout_regset_outfmt_vmin(
                 bboact);
         voclib_voc_write32(VOCLIB_VOUT_REGMAP_BBO_STDHACTIVEAREA,
                 bbohact);
-        // ToDo
         *vlatch_flag |= VOCLIB_VOUT_VLATCH_IMMEDIATE_VMIX;
 
     }
@@ -2198,7 +2186,7 @@ uint32_t voclib_vout_update_event(
         struct voclib_vout_lvmix_sub_work *mix_sub_input,
         struct voclib_vout_lvmix_work *mix_input,
         struct voclib_vout_alphamap_work *amap_input,
-        uint32_t afbcd_assign_input,
+        uint32_t reserved,
         struct voclib_vout_vopinfo_lib_if_t *vop_input,
         struct voclib_vout_psync_work *psync_input,
         struct voclib_vout_osd_display_work *osddisp_input,
@@ -2234,7 +2222,7 @@ uint32_t voclib_vout_update_event(
     struct voclib_vout_alphamap_work amap1 = {0};
     struct voclib_vout_osd_mute_work osdmute0 = {0};
     struct voclib_vout_osd_mute_work osdmute1 = {0};
-    uint32_t afbcd_assign = 0;
+    uint32_t reserved_assign = 0;
     struct voclib_vout_vopinfo_lib_if_t vop = {0};
     struct voclib_vout_psync_work psync0 = {0};
     struct voclib_vout_psync_work psync1 = {0};
@@ -2529,8 +2517,8 @@ uint32_t voclib_vout_update_event(
         case VOCLIB_VOUT_CHG_AMAP1:
             amap1 = *amap_input;
             break;
-        case VOCLIB_VOUT_CHG_AFBCD_ASSIGN:
-            afbcd_assign = afbcd_assign_input;
+        case VOCLIB_VOUT_CHG_RESERVE_ASSIGN:
+            reserved_assign = reserved;
             break;
         case VOCLIB_VOUT_CHG_VOPINFO:
             vop = *vop_input;
@@ -2660,7 +2648,7 @@ uint32_t voclib_vout_update_event(
             voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AMAP1) |
             voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_OSDMUTE0) |
             voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_OSDMUTE1) |
-            voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN),
+            voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_RESERVE_ASSIGN),
             "match dataflow,vmix,vmix_sub,amap0,amap1,osdmute0,osdmute1");
 
     VOCLIB_VOUT_EVENT_CHECK_PAT(
@@ -2882,8 +2870,8 @@ uint32_t voclib_vout_update_event(
         if ((chk_pat & voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AMAP1)) != 0) {
             voclib_vout_work_load_alphamap(1, &amap1);
         }
-        if ((chk_pat & voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN)) != 0) {
-            afbcd_assign = voclib_vout_work_get_afbcd_assign();
+        if ((chk_pat & voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_RESERVE_ASSIGN)) != 0) {
+            reserved_assign = voclib_vout_work_get_reserved_assign();
         }
         if ((chk_pat & voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_LMIX_SUB)) != 0) {
             voclib_vout_work_load_lvmix_sub(1, &lmix_sub);
@@ -3009,15 +2997,18 @@ uint32_t voclib_vout_update_event(
             struct voclib_vout_regset_dflow_outformat regset_do1[1];
             voclib_vout_calc_dflow_outformat(regset_do1, &dflow, &ofmt0, &ofmt1);
             chg |= voclib_vout_regset_dflow_outformat(&vlatch_flag, regset_do1);
+
             chg |= voclib_vout_regset_lmix_config3(
                     &vlatch_flag,
                     voclib_vout_calc_lmix_config3(&ofmt0, &ofmt1, &dflow));
+
         }
         if (VOCLIB_VOUT_EVENT_EXEC(
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_DATAFLOW) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AMIX) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_OSDMUTE0) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_OSDMUTE1))) {
+
             uint32_t update_flag;
             voclib_vout_calc_dflow_amix_osdmute(amix_usage + stage, &amix,
                     &dflow, &osdmute0, &osdmute1);
@@ -3028,6 +3019,7 @@ uint32_t voclib_vout_update_event(
                     update_flag,
                     first, amix_usage + stage,
                     amix_usage + 1 - stage, &mid_event);
+
         }
         if (VOCLIB_VOUT_EVENT_EXEC(
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_DATAFLOW) |
@@ -3037,16 +3029,18 @@ uint32_t voclib_vout_update_event(
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AMAP1) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_OSDMUTE0) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_OSDMUTE1) |
-                voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN))) {
+                voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_RESERVE_ASSIGN))) {
+
             voclib_vout_calc_vmix_plane(regset_vmix_plane + stage,
                     &vmix, &vmix_sub, &dflow,
-                    &amap0, &amap1, &osdmute0, &osdmute1, afbcd_assign);
+                    &amap0, &amap1, &osdmute0, &osdmute1, reserved_assign);
             chg |= voclib_vout_regset_vmix_plane(&vlatch_flag,
                     (event_in == VOCLIB_VOUT_CHG_DATAFLOW ||
-                    event_in == VOCLIB_VOUT_CHG_AFBCD_ASSIGN) ? 1 : 0,
+                    event_in == VOCLIB_VOUT_CHG_RESERVE_ASSIGN) ? 1 : 0,
                     first, regset_vmix_plane +
                     stage,
                     regset_vmix_plane + 1 - stage, &mid_event);
+
         }
         if (VOCLIB_VOUT_EVENT_EXEC(
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_DATAFLOW) |
@@ -3054,6 +3048,7 @@ uint32_t voclib_vout_update_event(
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_LMIX_SUB) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_OSDMUTE0) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_OSDMUTE1))) {
+
             voclib_vout_calc_lmix_plane(regset_lmix_plane + stage, &lmix, &lmix_sub,
                     &dflow,
                     &osdmute0, &osdmute1);
@@ -3062,6 +3057,7 @@ uint32_t voclib_vout_update_event(
                     event_in == VOCLIB_VOUT_CHG_DATAFLOW ? 1 : 0,
                     first, regset_lmix_plane + stage,
                     regset_lmix_plane + 1 - stage, &mid_event);
+
         }
 
 
@@ -3076,7 +3072,9 @@ uint32_t voclib_vout_update_event(
             struct voclib_vout_regset_outformat_psync regset_fmt_ps1[1] = {
                 {0}
             };
+
             voclib_vout_voffset_calc(&ofmt0, &psync0, regset_fmt_ps0);
+
             voclib_vout_voffset_calc(&ofmt1, &psync1, regset_fmt_ps1);
             chg |= voclib_vout_regset_outformat_sync(
                     &vlatch_flag,
@@ -3441,6 +3439,7 @@ uint32_t voclib_vout_update_event(
                         voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_OFMT0 + pno) |
                         voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_CLK0 + pno) |
                         voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_PRIMARYMUTE0 + pno))) {
+
                     voclib_vout_calc_mute(pno,
                             (pno == 0 ? regset_mute0 : regset_mute1) + stage,
                             (pno == 0 ? primary_mute0 : primary_mute1), &dflow,
@@ -3451,6 +3450,7 @@ uint32_t voclib_vout_update_event(
                             vlatch_flag, pno, first,
                             (pno == 0 ? regset_mute0 : regset_mute1) + stage,
                             (pno == 0 ? regset_mute0 : regset_mute1) + 1 - stage);
+
                 }
             }
         }
@@ -3550,6 +3550,7 @@ uint32_t voclib_vout_update_event(
             VOCLIB_VOUT_MIDLOAD_AMIXUSAGE
             VOCLIB_VOUT_LOAD_MEMFMT_V1
             VOCLIB_VOUT_LOAD_CONV444_V1
+
             voclib_vout_calc_amix_color(regset_amixcolor + stage_amixcolor,
                     amix_pat, &memv1, conv444_video1);
             chg |= voclib_vout_regset_amix_color_func(
@@ -3560,6 +3561,7 @@ uint32_t voclib_vout_update_event(
                     &mid_event);
             first_amix_color = 0;
             stage_amixcolor = 1 - stage_amixcolor;
+
         }
 
         if (VOCLIB_VOUT_MIDEVENT_EXEC(VOCLIB_VOUT_EVENT_CHG_VMIXUSAGE) ||
@@ -3809,7 +3811,7 @@ uint32_t voclib_vout_update_event(
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_VIDEODISP0) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_VIDEOMUTE0) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_MEMFMT_V0) |
-                voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN) |
+                voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_RESERVE_ASSIGN) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_PSYNC0) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_PSYNC1) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_DATAFLOW))) {
@@ -3823,7 +3825,6 @@ uint32_t voclib_vout_update_event(
 
             VOCLIB_VOUT_LOAD_VIDEOMUTE0
             VOCLIB_VOUT_LOAD_MEMFMT_V0
-            VOCLIB_VOUT_LOAD_AFBCD_ASSIGN
 
             VOCLIB_VOUT_LOAD_PSYNC0
             VOCLIB_VOUT_LOAD_PSYNC1
@@ -3833,7 +3834,7 @@ uint32_t voclib_vout_update_event(
             vrev = dflow.vmix_assign == 1 ? ofmt0.vreverse : ofmt1.vreverse;
             voclib_vout_calc_regset_vconfig(regset_vconfig0 +
                     stage_vconfig0, &vact_v0,
-                    &vdisp0, &mute_v0, &memv0, afbcd_assign & 4,
+                    &vdisp0, &mute_v0, &memv0, reserved_assign & 4,
                     dflow.vmix_assign == 1 ? &psync0 : &psync1,
                     vrev);
             chg |= voclib_vout_regset_regset_vconfig_func(
@@ -3852,7 +3853,7 @@ uint32_t voclib_vout_update_event(
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_VIDEODISP1) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_VIDEOMUTE1) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_MEMFMT_V1) |
-                voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN) |
+                voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_RESERVE_ASSIGN) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_PSYNC0) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_PSYNC1) |
                 voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_DATAFLOW))) {
@@ -3867,7 +3868,6 @@ uint32_t voclib_vout_update_event(
             VOCLIB_VOUT_LOAD_VIDEOMUTE1
             VOCLIB_VOUT_LOAD_MEMFMT_V1
 
-            VOCLIB_VOUT_LOAD_AFBCD_ASSIGN
             VOCLIB_VOUT_LOAD_PSYNC0
             VOCLIB_VOUT_LOAD_PSYNC1
 
@@ -3880,7 +3880,7 @@ uint32_t voclib_vout_update_event(
             vrev = (vrev == 0) ? ofmt0.vreverse : ofmt1.vreverse;
             voclib_vout_calc_regset_vconfig(regset_vconfig1 +
                     stage_vconfig1, &vact_v1,
-                    &vdisp1, &mute_v1, &memv1, afbcd_assign & 8,
+                    &vdisp1, &mute_v1, &memv1, reserved_assign & 8,
                     dflow.amix_assign == 2 ? &psync1 :
                     (dflow.amix_assign == 1 ? &psync0 :
                     (dflow.vmix_assign == 1 ? &psync0 : &psync1)),
@@ -3890,6 +3890,7 @@ uint32_t voclib_vout_update_event(
                     1, first_vconfig1,
                     regset_vconfig1 + stage_vconfig1,
                     regset_vconfig1 + 1 - stage_vconfig1, &mid_event);
+
             first_vconfig1 = 0;
             stage_vconfig1 = 1 - stage_vconfig1;
 
@@ -4096,7 +4097,7 @@ uint32_t voclib_vout_update_event(
                         voclib_vout_update_maskpat(osd_no == 0 ?
                         VOCLIB_VOUT_CHG_OSDMEM0 : VOCLIB_VOUT_CHG_OSDMEM1) |
                         voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_DATAFLOW) |
-                        voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN))) {
+                        voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_RESERVE_ASSIGN))) {
                     uint32_t vrev;
 
                     VOCLIB_VOUT_MIDLOAD_OSDACTIVE(osd_no)
@@ -4113,7 +4114,6 @@ uint32_t voclib_vout_update_event(
                     VOCLIB_VOUT_LOAD_PSYNC1
 
                     VOCLIB_VOUT_LOAD_DATAFLOW
-                    VOCLIB_VOUT_LOAD_AFBCD_ASSIGN
 
                     vrev =
                             (osd_no == 0 ? dflow.osd0_primary_assign : dflow.osd1_primary_assign) == 1 ?
@@ -4130,7 +4130,7 @@ uint32_t voclib_vout_update_event(
                             &psync0,
                             &psync1,
                             &dflow,
-                            afbcd_assign,
+                            reserved_assign,
                             vrev);
                     chg |= voclib_vout_regset_osd_planesize_func(
                             &vlatch_flag,
@@ -4421,7 +4421,7 @@ uint32_t voclib_vout_update_event(
                         VOCLIB_VOUT_EVENT_CHG_VMIXCOLORINFO |
                         VOCLIB_VOUT_EVENT_CHG_AMAPUSAGE) ||
                         VOCLIB_VOUT_EVENT_EXEC(
-                        voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN) |
+                        voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_RESERVE_ASSIGN) |
                         voclib_vout_update_maskpat(chg_osdmem) |
                         voclib_vout_update_maskpat(chg_osddisp) |
                         voclib_vout_update_maskpat(chg_matrixmode) |
@@ -4436,7 +4436,6 @@ uint32_t voclib_vout_update_event(
 
                     VOCLIB_VOUT_MIDLOAD_AMIXCOLOR
 
-                    VOCLIB_VOUT_LOAD_AFBCD_ASSIGN
 
                     VOCLIB_VOUT_LOAD_OSDDISP(osd_no)
                     VOCLIB_VOUT_LOAD_OSDMEM(osd_no)
@@ -4449,7 +4448,7 @@ uint32_t voclib_vout_update_event(
                     voclib_vout_calc_osd_color(
                             osd_no,
                             regset_osd_color + osd_no * 2 + stage_osd_color[osd_no],
-                            amap_usage, afbcd_assign,
+                            amap_usage, reserved_assign,
                             vmix_color,
                             lmix_color,
                             amix_color,
@@ -4478,16 +4477,16 @@ uint32_t voclib_vout_update_event(
                 if (VOCLIB_VOUT_MIDEVENT_EXEC(
                         VOCLIB_VOUT_EVENT_CHG_AMAPUSAGE) ||
                         VOCLIB_VOUT_EVENT_EXEC(
-                        voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_AFBCD_ASSIGN) |
+                        voclib_vout_update_maskpat(VOCLIB_VOUT_CHG_RESERVE_ASSIGN) |
                         voclib_vout_update_maskpat(chg_osdmem))) {
                     VOCLIB_VOUT_MIDLOAD_AMAPUSAGE
-                    VOCLIB_VOUT_LOAD_AFBCD_ASSIGN
+
 
                     VOCLIB_VOUT_LOAD_OSDMEM(osd_no)
 
                     voclib_vout_calc_osd_pixelmode(osd_no,
                             regset_osd_pixelmode + osd_no * 2 + stage_osd_pixelmode[osd_no],
-                            amap_usage, afbcd_assign, osdmem);
+                            amap_usage, reserved_assign, osdmem);
                     chg |= voclib_vout_regset_osd_pixelmode_func(
                             &vlatch_flag,
                             osd_no,

@@ -1,8 +1,6 @@
 /*
- * voclib_vout_lvds.h
- *
- *  Created on: 2016/02/19
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_LVDS_H_

@@ -1,8 +1,6 @@
 /*
- * voclib_vpll8k.h
- *
- *  Created on: 2015/12/07
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_VPLL8K_H_

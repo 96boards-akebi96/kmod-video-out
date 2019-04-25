@@ -1,8 +1,6 @@
 /*
- * voclib_aenc.c
- *
- *  Created on: 2015/09/16
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 #include "../include/voclib_vout.h"
 #include "../include/voclib_vout_local.h"

@@ -1,8 +1,6 @@
 /*
- * voclib_vout_memout_update.h
- *
- *  Created on: 2016/04/25
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_MEMOUT_UPDATE_H_

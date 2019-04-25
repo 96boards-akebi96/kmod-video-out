@@ -1,8 +1,6 @@
 /*
- * voclib_vout_user.h
- *
- *  Created on: 2016/01/18
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_USER_H_
@@ -26,18 +24,15 @@ uint32_t voclib_sg_read32(uintptr_t address);
 
 void voclib_vout_common_work_store(uint32_t start, uint32_t len,
         const uint32_t *data);
+
+
 void voclib_vout_common_work_load(uint32_t start, uint32_t len, uint32_t *data);
 
 #ifndef VOCLIB_SLD11
 void voclib_lvl_write32(uintptr_t address, uint32_t data);
 uint32_t voclib_lvl_read32(uintptr_t address);
 void voclib_lvl_maskwrite32(uintptr_t address, uint32_t mask, uint32_t data);
-void voclib_afbcd_write32(
-        uintptr_t address,
-        uint32_t data);
-uint32_t voclib_afbcd_read32(
-        uintptr_t address
-        );
+
 #else
 void voclib_sg_maskwrite32(
         uintptr_t address,

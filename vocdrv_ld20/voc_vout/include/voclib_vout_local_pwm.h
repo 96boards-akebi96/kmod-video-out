@@ -1,8 +1,6 @@
 /*
- * voclib_pwm_function.h
- *
- *  Created on: 2015/10/13
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_LOCAL_PWM_H_

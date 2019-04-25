@@ -1,8 +1,6 @@
 /*
- * voclib_vout_systype.h
- *
- *  Created on: 2015/12/15
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_SYSTYPES_H_

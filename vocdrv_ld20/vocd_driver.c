@@ -23,10 +23,10 @@
 #include <linux/uaccess.h>		/* for copy_from_user etc. */
 #include <linux/vmalloc.h>		/* for vmalloc_32_user() remap_vmalloc_range() */
 
-#include "vocd_driver.h"
-
 #include "voc_intr/include/voclib_intr.h"
 #include "voc_vout/include/voclib_vout.h"
+#include "vocd_driver.h"
+#include "vocd_driver_internal.h"
 
 /*
  * macro
@@ -55,7 +55,7 @@ static const struct file_operations vocdFops = {
 };
 
 struct VOCDin_TunneledInfo {
-	uint32_t startPlayFlag; /* 0: “®‰æ–¢Ä¶, 1: Ä¶’† */
+	uint32_t startPlayFlag; /* 0: Movie unplayed, 1: During playback */
 	uint32_t terminateFlag; /* 0: OFF, 1: ON */
 	uint32_t pauseFlag;     /* 0: OFF, 1: ON */
 
@@ -166,8 +166,8 @@ uint32_t gVocdVsync5Irq;
 struct device **gVocdDevice;
 
 uint32_t gVMemOffset;
-struct voclib_vout_video_memoryformat_lib_if_t *gMemFormat;
-struct voclib_vout_video_display_lib_if_t *gDisplaySet;
+struct voclib_vout_video_memoryformat_lib_if_t *gMemFormat0, *gMemFormat1;
+struct voclib_vout_video_display_lib_if_t *gDisplaySet0, *gDisplaySet1;
 
 /* Lock(WAIT_VSYNC) */
 static inline int vocdLock(void)
@@ -417,7 +417,6 @@ int vocdSetVideoBufInfo(VOCD_VideoBufInfo * buf_info)
 	spin_lock_irqsave(&gVocdSplock, gVocdSplockFlag);
 
 	{
-
 		/* TerminateFlag ON */
 		if (gVocdinTnlInfo[i].terminateFlag == 1) {
 			gVocdinTnlInfo[i].terminateFlag = 0;
@@ -425,7 +424,7 @@ int vocdSetVideoBufInfo(VOCD_VideoBufInfo * buf_info)
 		} else {
 			/* Mute Off in case of the first frame */
 			if (gVocdinTnlInfo[i].startPlayFlag == 0) {
-				gVocdinTnlInfo[i].startPlayFlag = 1; /* Ä¶’† */
+				gVocdinTnlInfo[i].startPlayFlag = 1; /* During playback */
 
 				if (gVocdinTnlInfo[i].muteType == 0) {
 					/* Mute Off */
@@ -449,45 +448,40 @@ int vocdSetVideoBufInfo(VOCD_VideoBufInfo * buf_info)
 		}
 		/* set CropInfo if configLinkMode is TRUE */
 		if (gVocdinTnlInfo[i].configLink == 1) {
-			struct voclib_vout_video_memoryformat_lib_if_t *pMemFormat;
-			struct voclib_vout_video_display_lib_if_t *pDisplaySet;
-
-			//pr_info("vocd:%d,%d,%d,%d,%d\n", gMemFormat->crop_left_div0, gMemFormat->crop_top_div0,
-			//	gMemFormat->color_format, gMemFormat->mode_compressed, gMemFormat->compressed_bit);
+			//pr_info("vocd:%d,%d,%d,%d,%d\n", gMemFormat0->crop_left_div0, gMemFormat0->crop_top_div0,
+			//	gMemFormat0->color_format, gMemFormat0->mode_compressed, gMemFormat0->compressed_bit);
 
 			/* InputCrop */
-			if (gMemFormat != NULL) {
-				pMemFormat = gMemFormat + buf_info->plane_no * sizeof(struct voclib_vout_video_memoryformat_lib_if_t);
-				pMemFormat->crop_left_div0	= buf_info->incrop_left;
-				pMemFormat->crop_top_div0	= buf_info->incrop_top;
-				voclib_vout_video_memoryformat_set(buf_info->plane_no, pMemFormat);
-			} else {
-				struct voclib_vout_video_memoryformat_lib_if_t memFormat;
-
-				memFormat.crop_left_div0	= buf_info->incrop_left;
-				memFormat.crop_top_div0		= buf_info->incrop_top;
-				voclib_vout_video_memoryformat_set(buf_info->plane_no, &memFormat);
+			if (buf_info->plane_no == 0 && gMemFormat0 != NULL) {
+				gMemFormat0->crop_left_div0	= buf_info->incrop_left;
+				gMemFormat0->crop_top_div0	= buf_info->incrop_top;
+				voclib_vout_video_memoryformat_set(buf_info->plane_no, gMemFormat0);
+				voclib_vout_primary_regupdate(0, VOCLIB_VOUT_UPDATEFLAG_NEXT_SYNC);
+			
+			} else if (buf_info->plane_no == 1 && gMemFormat1 != NULL) {
+				gMemFormat1->crop_left_div0	= buf_info->incrop_left;
+				gMemFormat1->crop_top_div0	= buf_info->incrop_top;
+				voclib_vout_video_memoryformat_set(buf_info->plane_no, gMemFormat1);
+				voclib_vout_primary_regupdate(0, VOCLIB_VOUT_UPDATEFLAG_NEXT_SYNC);
 			}
+
 			/* OutputCrop */
-			if (gDisplaySet != NULL) {
-				pDisplaySet = gDisplaySet + buf_info->plane_no * sizeof(struct voclib_vout_video_display_lib_if_t);
-				pDisplaySet->disp_left		= buf_info->outcrop_left;
-				pDisplaySet->disp_top		= buf_info->outcrop_top;
-				pDisplaySet->disp_width		= buf_info->outcrop_width;
-				pDisplaySet->disp_height	= buf_info->outcrop_height;
-				voclib_vout_video_display_set(buf_info->plane_no, 1, pDisplaySet);
-			} else {
-				struct voclib_vout_video_display_lib_if_t displaySet;
-
-				displaySet.disp_left		= buf_info->outcrop_left;
-				displaySet.disp_top		= buf_info->outcrop_top;
-				displaySet.disp_width		= buf_info->outcrop_width;
-				displaySet.disp_height	= buf_info->outcrop_height;
-				voclib_vout_video_display_set(buf_info->plane_no, 1, &displaySet);
+			if (buf_info->plane_no == 0 && gDisplaySet0 != NULL) {
+				gDisplaySet0->disp_left		= buf_info->outcrop_left;
+				gDisplaySet0->disp_top		= buf_info->outcrop_top;
+				gDisplaySet0->disp_width	= buf_info->outcrop_width;
+				gDisplaySet0->disp_height	= buf_info->outcrop_height;
+				voclib_vout_video_display_set(buf_info->plane_no, 1, gDisplaySet0);
+				voclib_vout_primary_regupdate(0, VOCLIB_VOUT_UPDATEFLAG_NEXT_SYNC);
+				
+			} else if (buf_info->plane_no == 1 && gDisplaySet1 != NULL) {
+				gDisplaySet1->disp_left		= buf_info->outcrop_left;
+				gDisplaySet1->disp_top		= buf_info->outcrop_top;
+				gDisplaySet1->disp_width	= buf_info->outcrop_width;
+				gDisplaySet1->disp_height	= buf_info->outcrop_height;
+				voclib_vout_video_display_set(buf_info->plane_no, 1, gDisplaySet1);
+				voclib_vout_primary_regupdate(0, VOCLIB_VOUT_UPDATEFLAG_NEXT_SYNC);
 			}
-
-			voclib_vout_primary_regupdate(0, VOCLIB_VOUT_UPDATEFLAG_NEXT_SYNC);
-
 		}
 
 		/* Low Delay ON */
@@ -495,7 +489,6 @@ int vocdSetVideoBufInfo(VOCD_VideoBufInfo * buf_info)
 
 		/* set currentPTS */
 		gVocdinTnlInfo[buf_info->plane_no].currentPTS = buf_info->pts;
-
 	}
 
 	spin_unlock_irqrestore(&gVocdSplock, gVocdSplockFlag);
@@ -752,10 +745,19 @@ static long vocdIoctl(struct file *fp, unsigned int cmd, unsigned long arg)
 	uint32_t	stc_counter;
 	struct voc_private *vocdev;
 
+	memset(&args, 0, sizeof(VOCD_IOC_ARG));
+	
 	switch (cmd) {
 	case VOCD_IOC_INIT:
-		gVoclibInitFlag = 1;
+		
+		ret = copy_from_user((void *)&args, (void *)arg, sizeof(VOCD_IOC_ARG));
+		
+		args.init_flag = gVoclibInitFlag;
 
+		if ( gVoclibInitFlag == 0 ) {
+			gVoclibInitFlag = 1;
+		}
+		
 		/* initialize voclib function */
 
 		/* set STC parameter for STCDISP */
@@ -764,6 +766,8 @@ static long vocdIoctl(struct file *fp, unsigned int cmd, unsigned long arg)
 		if (voclib_vout_stc_set(VOCD_STCDISP, VOCD_STCDISP, 0, 0, VOCLIB_VOUT_PSYNC_OUT0))
 			pr_info("[VOCD]Error:voclib_vout_stc_set,%d\n", __LINE__);
 
+		ret = copy_to_user((void *)arg, (void *)&args, sizeof(args));
+		
 		break;
 
 	case VOCD_IOC_SET_DISP_INFO:
@@ -1047,15 +1051,18 @@ static long vocdIoctl(struct file *fp, unsigned int cmd, unsigned long arg)
 	case VOCD_IOC_SET_SHAREMEM_INFO:
 		ret = copy_from_user((void *)&args, (void *)arg, sizeof(VOCD_IOC_ARG));
 
-		if ((args.ssmi.vmem_offset > VOCD_VDC_SIZE) || (args.ssmi.vdisp_offset > VOCD_VDC_SIZE)) {
+		if ((args.ssmi.vmem_offset0 > VOCD_HEAP_SIZE) || (args.ssmi.vmem_offset1 > VOCD_HEAP_SIZE) ||
+			(args.ssmi.vdisp_offset0 > VOCD_HEAP_SIZE) || (args.ssmi.vdisp_offset1 > VOCD_HEAP_SIZE)) {
 			sysRet = -EINVAL;
 			break;
 		}
 
 		spin_lock_irqsave(&gVocdSplock, gVocdSplockFlag);
 
-		gMemFormat = (struct voclib_vout_video_memoryformat_lib_if_t *)(vocd_heap_vir_addr + args.ssmi.vmem_offset);
-		gDisplaySet = (struct voclib_vout_video_display_lib_if_t *)(vocd_heap_vir_addr + args.ssmi.vdisp_offset);
+		gMemFormat0 = (struct voclib_vout_video_memoryformat_lib_if_t *)(vocd_heap_vir_addr + args.ssmi.vmem_offset0);
+		gMemFormat1 = (struct voclib_vout_video_memoryformat_lib_if_t *)(vocd_heap_vir_addr + args.ssmi.vmem_offset1);
+		gDisplaySet0 = (struct voclib_vout_video_display_lib_if_t *)(vocd_heap_vir_addr + args.ssmi.vdisp_offset0);
+		gDisplaySet1 = (struct voclib_vout_video_display_lib_if_t *)(vocd_heap_vir_addr + args.ssmi.vdisp_offset1);
 
 		spin_unlock_irqrestore(&gVocdSplock, gVocdSplockFlag);
 		break;
@@ -1114,56 +1121,14 @@ static long vocdIoctl(struct file *fp, unsigned int cmd, unsigned long arg)
 static int vocdMmap(struct file *lp_fp, struct vm_area_struct *vma)
 {
 	int sysRet = 0;
-	unsigned long offs, size;
+	unsigned long offs = 0;
+	unsigned long size = 0;
 
 	if (vma == NULL) {
 		pr_info("ERR(%d) VOCD mmap!\n", -EINVAL);
 		return -EINVAL;
 	}
 
-	switch (vma->vm_pgoff << PAGE_SHIFT) {
-	case VOCD_MMAP_VOC_REG:
-		offs = ((unsigned long)VOCD_VOC_REG_ADDR >> PAGE_SHIFT); /* physical address of VOC register */
-		size = VOCD_VOC_REG_SIZE;
-		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-		break;
-#ifndef VOCD_LD11
-	case VOCD_MMAP_LVL_REG:
-		offs = ((unsigned long)VOCD_LVL_REG_ADDR >> PAGE_SHIFT); /* physical address of LVL register */
-		size = VOCD_LVL_REG_SIZE;
-		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-		break;
-	case VOCD_MMAP_AFBCD_REG:
-		offs = ((unsigned long)VOCD_AFBCD_REG_ADDR >> PAGE_SHIFT); /* physical address of AFBCD register */
-		size = VOCD_AFBCD_REG_SIZE;
-		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-		break;
-#endif
-	case VOCD_MMAP_SG2_REG:
-		offs = ((unsigned long)VOCD_SG2_REG_ADDR >> PAGE_SHIFT); /* physical address of SG2 register */
-		size = VOCD_SG2_REG_SIZE;
-		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-		break;
-	case VOCD_MMAP_COMMON_WORK:
-		offs = ((unsigned long)VOCD_VOCLIB_WORK_ADDR >> PAGE_SHIFT); /* physical address of Common Work Area */
-		size = VOCD_VOCLIB_WORK_SIZE; /* Max size */
-		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
-		break;
-	case VOCD_MMAP_SLC_REG:
-		offs = ((unsigned long)VOCD_SLC_REG_ADDR >> PAGE_SHIFT); /* physical address of SLC register */
-		size = VOCD_SLC_REG_SIZE;
-		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-		break;
-	case VOCD_MMAP_SG_REG:
-	case VOCD_MMAP_SC_REG:
-		/* mapping processing is not required */
-		return 0;
-	case VOCD_MMAP_HEAP:
-		break;
-	default:
-		pr_info("ERR(%d) VOCD mmap!\n", -EINVAL);
-		return -EINVAL;
-	}
 	/* mapping */
 	if ((vma->vm_pgoff << PAGE_SHIFT) == VOCD_MMAP_HEAP) {
 		sysRet = remap_vmalloc_range(vma, (void *)vocd_heap_vir_addr, 0);
@@ -1171,7 +1136,54 @@ static int vocdMmap(struct file *lp_fp, struct vm_area_struct *vma)
 			pr_info("ERR(%d) VOCD mmap(remap_vmalloc_range)!\n", sysRet);
 			return sysRet;
 		}
+		return 0;
+	} else if ((vma->vm_pgoff << PAGE_SHIFT) == VOCD_MMAP_SG_REG) {
+		/* mapping processing is not required */
+		return 0;
+
+	} else if ((vma->vm_pgoff << PAGE_SHIFT) == VOCD_MMAP_SC_REG) {
+		/* mapping processing is not required */
+		return 0;
+
 	} else {
+
+		switch (vma->vm_pgoff << PAGE_SHIFT) {
+		case VOCD_MMAP_VOC_REG:
+			offs = ((unsigned long)VOCD_VOC_REG_ADDR >> PAGE_SHIFT); /* physical address of VOC register */
+			size = VOCD_VOC_REG_SIZE;
+			vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+			break;
+#ifndef VOCD_LD11
+		case VOCD_MMAP_LVL_REG:
+			offs = ((unsigned long)VOCD_LVL_REG_ADDR >> PAGE_SHIFT); /* physical address of LVL register */
+			size = VOCD_LVL_REG_SIZE;
+			vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+			break;
+		case VOCD_MMAP_AFBCD_REG:
+			offs = ((unsigned long)VOCD_AFBCD_REG_ADDR >> PAGE_SHIFT); /* physical address of AFBCD register */
+			size = VOCD_AFBCD_REG_SIZE;
+			vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+			break;
+#endif
+		case VOCD_MMAP_SG2_REG:
+			offs = ((unsigned long)VOCD_SG2_REG_ADDR >> PAGE_SHIFT); /* physical address of SG2 register */
+			size = VOCD_SG2_REG_SIZE;
+			vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+			break;
+		case VOCD_MMAP_COMMON_WORK:
+			offs = ((unsigned long)VOCD_VOCLIB_WORK_ADDR >> PAGE_SHIFT); /* physical address of Common Work Area */
+			size = VOCD_VOCLIB_WORK_SIZE; /* Max size */
+			vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+			break;
+		case VOCD_MMAP_SLC_REG:
+			offs = ((unsigned long)VOCD_SLC_REG_ADDR >> PAGE_SHIFT); /* physical address of SLC register */
+			size = VOCD_SLC_REG_SIZE;
+			vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+			break;
+		default:
+			break;
+		}
+
 		if ((vma->vm_pgoff > (~0UL >> PAGE_SHIFT)) || (size == 0) || (offs == 0)) {
 			pr_info("ERR(%d) VOCD mmap!\n", -EINVAL);
 			return -EINVAL;
@@ -1181,9 +1193,8 @@ static int vocdMmap(struct file *lp_fp, struct vm_area_struct *vma)
 			pr_info("ERR(%d) VOCD mmap(remap_pfn_range)!\n", -EINVAL);
 			return -EINVAL;
 		}
+		return 0;
 	}
-
-	return 0;
 }
 
 /*
@@ -1334,14 +1345,14 @@ static int voc_probe(struct platform_device *pdev)
 		return ret;
 
 	/* allocate VDC Area*/
-	priv->base_vdc = (uintptr_t)vmalloc_32_user(VOCD_VDC_SIZE);
+	priv->base_vdc = (uintptr_t)vmalloc_32_user(VOCD_HEAP_SIZE);
 	if (!priv->base_vdc)
 		return -ENOMEM;
 	vocd_heap_vir_addr = (uintptr_t)priv->base_vdc;
 
 	/* initialize VDC Area */
 	tmpAddr = (u32 *)vocd_heap_vir_addr;
-	for (i = 0; i < VOCD_VDC_SIZE / sizeof(u32); i++, tmpAddr++)
+	for (i = 0; i < VOCD_HEAP_SIZE / sizeof(u32); i++, tmpAddr++)
 		iowrite32(0x0, (void *)tmpAddr);
 
 	priv->regmap_sg = syscon_regmap_lookup_by_phandle(dev->of_node,
@@ -1503,6 +1514,8 @@ static int voc_remove(struct platform_device *pdev)
 
 	vfree((void *)vocd_heap_vir_addr);
 
+	gVoclibInitFlag = 0;
+	
 	/* unregister Device Driver */
 	vocdRemoveCdev(priv);
 

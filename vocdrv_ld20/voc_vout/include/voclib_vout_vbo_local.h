@@ -1,8 +1,6 @@
 /*
- * voclib_vout_vbo_local.h
- *
- *  Created on: 2016/06/17
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_VBO_LOCAL_H_

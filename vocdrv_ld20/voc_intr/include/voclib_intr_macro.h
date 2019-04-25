@@ -1,8 +1,6 @@
 /*
- * voclib_intr_macro.h
- *
- *  Created on: 2016/03/24
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_INTR_MACRO_H_

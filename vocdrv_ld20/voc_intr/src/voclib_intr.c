@@ -1,8 +1,6 @@
 /*
- * voclib_intr.c
- *
- *  Created on: 2016/01/12
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #include "../include/voclib_intr.h"

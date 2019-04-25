@@ -1,8 +1,6 @@
 /*
- * voclib_cvbs_set.c
- *
- *  Created on: 2015/09/29
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 #include "../include/voclib_vout.h"
 #include "../include/voclib_vout_local.h"
@@ -36,9 +34,7 @@ static inline uint32_t voclib_vout_set_AnaOutConfig2_2(
     return chg;
 }
 
-uint32_t voclib_vout_mv_support_check() {
-    return voclib_vout_read_field(1, 1, voclib_voc_read32(0x5f006cf0));
-}
+
 
 uint32_t voclib_vout_cvbs_border_set(uint32_t cvbs_no, uint32_t mode_border,
         uint32_t left, uint32_t top, uint32_t right, uint32_t bottom,
@@ -111,102 +107,6 @@ uint32_t voclib_vout_cvbs_border_set(uint32_t cvbs_no, uint32_t mode_border,
     return VOCLIB_VOUT_RESULT_OK;
 }
 
-uint32_t voclib_vout_mv_set(uint32_t update_flag,
-        const struct voclib_vout_struct_mv_lib_if_t *param) {
-    VOCLIB_VOUT_DEBUG_FNAME("voclib_vout_mv_set")
-            const uintptr_t latchad = 0x5f006a24;
-    const uintptr_t ad = 0x5f006a04;
-    voclib_vout_debug_enter(fname);
-    if ((update_flag & VOCLIB_VOUT_UPDATEFLAG_UPDATAMODE) != 0) {
-        voclib_vout_debug_errmessage(fname, "Update Mode not support");
-        return VOCLIB_VOUT_RESULT_PARAMERROR;
-    }
-
-
-    if ((update_flag & VOCLIB_VOUT_UPDATEFLAG_CHECKUPDATE) != 0) {
-        if (voclib_vout_read_field(4, 4, voclib_voc_read32(latchad)) != 0) {
-            voclib_vout_debug_updaterror(fname);
-            return VOCLIB_VOUT_RESULT_NOTUPDATEFINISH;
-        }
-    }
-    if ((update_flag & VOCLIB_VOUT_UPDATEFLAG_NO_CTL) == 0) {
-        voclib_voc_write32(latchad,
-                voclib_vout_set_field(16, 16, 0)
-                | voclib_vout_set_field(1, 1, 1)
-                | voclib_vout_set_field(0, 0, 1));
-    }
-    if ((update_flag & VOCLIB_VOUT_UPDATEFLAG_CTL_ONLY) == 0) {
-        voclib_voc_write32(ad + 0,
-                voclib_vout_set_field(31, 24, param->formata)
-                | voclib_vout_set_field(18, 16, param->spacinga)
-                | voclib_vout_set_field(10, 8, param->locationa)
-                | voclib_vout_set_field(2, 0, param->durationa));
-        voclib_voc_write32(ad + 4,
-                voclib_vout_set_field(31, 24, param->formatb)
-                | voclib_vout_set_field(18, 16, param->spacingb)
-                | voclib_vout_set_field(10, 8, param->locationb)
-                | voclib_vout_set_field(2, 0, param->durationb));
-        voclib_voc_write32(ad + 2 * 4,
-                voclib_vout_set_field(30, 16, param->agcformat)
-                | voclib_vout_set_field(14, 0, param->agcoutline));
-        voclib_voc_write32(ad + 3 * 4,
-                voclib_vout_set_field(11, 8, param->bpline2)
-                | voclib_vout_set_field(3, 0, param->bpline1));
-        voclib_voc_write32(ad + 4 * 4,
-                voclib_vout_set_field(31, 30, param->coline)
-                | voclib_vout_set_field(29, 27, param->colcnt)
-                | voclib_vout_set_field(26, 24, param->colspace)
-                | voclib_vout_set_field(23, 18, param->bvspace)
-                | voclib_vout_set_field(17, 12, param->bvfirst)
-                | voclib_vout_set_field(11, 6, param->tvspace)
-                | voclib_vout_set_field(5, 0, param->tvfirst));
-        voclib_voc_write32(ad + 5 * 4,
-                voclib_vout_set_field(17, 17, param->bphaseon3)
-                | voclib_vout_set_field(16, 16, param->bphaseon2)
-                | voclib_vout_set_field(15, 15, param->bphaseon1)
-                | voclib_vout_set_field(14, 11, param->duration3)
-                | voclib_vout_set_field(10, 7, param->duration2)
-                | voclib_vout_set_field(6, 3, param->duration1)
-                | voclib_vout_set_field(2, 2, param->bason));
-        voclib_voc_write32(ad + 6 * 4,
-                voclib_vout_set_field(9, 8, param->co5th)
-                | voclib_vout_set_field(7, 6, param->co4th)
-                | voclib_vout_set_field(5, 4, param->co3rd)
-                | voclib_vout_set_field(3, 2, param->co2nd)
-                | voclib_vout_set_field(1, 0, param->co1st));
-
-    }
-    if ((update_flag & VOCLIB_VOUT_UPDATEFLAG_NEXT_SYNC) != 0) {
-        voclib_voc_write32(latchad, voclib_vout_set_field(16, 16, 1) |
-                voclib_vout_set_field(1, 1, 1) |
-                voclib_vout_set_field(0, 0, 1));
-    } else {
-        if ((update_flag & VOCLIB_VOUT_UPDATEFLAG_IMMEDIATE) != 0) {
-            voclib_voc_write32(latchad, voclib_vout_set_field(16, 16, 0) |
-                    voclib_vout_set_field(1, 1, 1) |
-                    voclib_vout_set_field(0, 0, 0));
-        }
-    }
-    voclib_vout_debug_success(fname);
-
-    return VOCLIB_VOUT_RESULT_OK;
-}
-
-uint32_t voclib_vout_mvmode_set(const struct voclib_vout_mvmode_lib_if_t *param) {
-    VOCLIB_VOUT_DEBUG_FNAME("voclib_vout_mvmode_set")
-    uintptr_t ad = 0x5f006a00;
-    voclib_vout_debug_enter(fname);
-    voclib_voc_write32(ad + 0,
-            voclib_vout_set_field(5, 5, param->psagsel)
-            | voclib_vout_set_field(4, 4, param->bp)
-            | voclib_vout_set_field(3, 3, param->csproc)
-            | voclib_vout_set_field(2, 2, param->agc)
-            | voclib_vout_set_field(1, 1, param->hsredu)
-            | voclib_vout_set_field(0, 0, param->vsredu));
-    voclib_vout_debug_success(fname);
-
-    return VOCLIB_VOUT_RESULT_OK;
-}
 
 uint32_t voclib_vout_cvbs_outmode_set(uint32_t cvbs_no, uint32_t enable,
         const struct voclib_vout_cvbs_outmode_lib_if_t *param) {

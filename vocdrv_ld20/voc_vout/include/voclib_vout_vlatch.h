@@ -1,8 +1,6 @@
 /*
- * voclib_vout_vlatch.h
- *
- *  Created on: 2016/03/23
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #ifndef INCLUDE_VOCLIB_VOUT_VLATCH_H_

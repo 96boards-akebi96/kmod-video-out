@@ -1,8 +1,6 @@
 /*
- * voclib_pvpll.c
- *
- *  Created on: 2015/10/29
- *      Author: watabe.akihiro
+ * Copyright (C) 2018 Socionext Inc.
+ * All Rights Reserved.
  */
 
 #include "../include/voclib_vout.h"
