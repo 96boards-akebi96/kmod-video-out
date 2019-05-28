@@ -3,6 +3,7 @@ CONFIG_UNIPHIER_VOCDRV_DEBUG ?= y
 
 ccflags-$(CONFIG_UNIPHIER_VOCDRV) += -DDEBUG
 ccflags-n += -DVOCD_LD11 -DVOCLIB_SLD11
+ccflags-y += -DDYNAMIC_DEVICE
 
 vocdrv-ld20-objs:= vocd_driver.o \
 		voc_intr/src/voclib_intr.o \

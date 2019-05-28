@@ -1261,7 +1261,7 @@ static int vocdCreateCdev(struct voc_private *priv)
 {
 	int ret;
 
-#ifdef DINAMIC_DEVICE
+#ifdef DYNAMIC_DEVICE
 	ret = alloc_chrdev_region(&priv->id, VOCD_MINOR0, 1, VOCD_MODULE_NAME);
 #else
 	priv->id = MKDEV(VOCD_MAJOR, VOCD_MINOR0);

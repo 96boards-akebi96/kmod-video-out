@@ -8,8 +8,8 @@
 #define _VOCD_H_
 
 /* Major number of VOCD */
-//#define DINAMIC_DEVICE
-#ifndef DINAMIC_DEVICE
+//#define DYNAMIC_DEVICE
+#ifndef DYNAMIC_DEVICE
 #define VOCD_MAJOR 1244
 #endif
 
