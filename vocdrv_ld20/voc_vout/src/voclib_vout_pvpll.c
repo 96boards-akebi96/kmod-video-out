@@ -52,8 +52,13 @@ uint32_t voclib_vout_pvpll_calc(uint32_t tin_mul, uint32_t tin_div,
     uint32_t f0_factor_sel = 0;
     uint32_t fz_factor_sel = 0;
     uint32_t fm_factor_sel = 0;
+        	
+	uint32_t g;
+        	
+    struct voclib_vout_pvpll_param init_param = {0};
+    *out = init_param;
 
-    uint32_t g = (uint32_t) voclib_vout_gcm(tin_mul, tin_div);
+    g = (uint32_t) voclib_vout_gcm(tin_mul, tin_div);
     if (g == 0) {
         return 1;
     }

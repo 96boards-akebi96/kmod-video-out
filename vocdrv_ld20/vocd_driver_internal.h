@@ -20,7 +20,6 @@ extern void vocd_sc_read32(struct regmap *regmap, uint32_t offsetaddr, uint32_t 
 extern uintptr_t vocd_libcmn_vir_addr;
 extern uintptr_t gIoremapVocArea;
 extern uintptr_t gIoremapLvlArea;
-extern uintptr_t gIoremapAfbcdArea;
 extern uintptr_t gRegmapScArea;
 extern uintptr_t gRegmapSgArea;
 

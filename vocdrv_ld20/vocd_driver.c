@@ -88,7 +88,6 @@ struct voc_private {
 	void __iomem *base_lvl;
 	void __iomem *base_voc;
 	void __iomem *base_sg2;
-	void __iomem *base_afbcd;
 	uintptr_t    base_vdc;
 	uintptr_t    base_voclib;
 	int irq_vout7;
@@ -111,7 +110,6 @@ struct voc_data {
 	bool is_voc;
 	enum voc_type type;
 	bool has_lvl;
-	bool has_afbcd;
 	int param[4];
 };
 
@@ -146,7 +144,6 @@ uint32_t gVoclibInitFlag;	/* 0: Not initialized, 1: Initialized */
 
 uintptr_t gIoremapVocArea;		/* register area of VOC */
 uintptr_t gIoremapLvlArea;		/* register area of LVL (Only LD10) */
-uintptr_t gIoremapAfbcdArea;		/* register area of AFBCD (Only LD10) */
 uintptr_t gIoremapSg2Area;		/* register area of SG2 */
 uintptr_t gRegmapSgArea;		/* regmap of SG */
 uintptr_t gRegmapScArea;		/* register area of SC */
@@ -1160,11 +1157,6 @@ static int vocdMmap(struct file *lp_fp, struct vm_area_struct *vma)
 			size = VOCD_LVL_REG_SIZE;
 			vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 			break;
-		case VOCD_MMAP_AFBCD_REG:
-			offs = ((unsigned long)VOCD_AFBCD_REG_ADDR >> PAGE_SHIFT); /* physical address of AFBCD register */
-			size = VOCD_AFBCD_REG_SIZE;
-			vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-			break;
 #endif
 		case VOCD_MMAP_SG2_REG:
 			offs = ((unsigned long)VOCD_SG2_REG_ADDR >> PAGE_SHIFT); /* physical address of SG2 register */
@@ -1392,15 +1384,6 @@ static int voc_probe(struct platform_device *pdev)
 		dev_info(dev, "[VOCD]gIoremapLvlArea=%lx in %s\n", gIoremapLvlArea, __func__);
 	}
 
-	if (data->has_afbcd) {
-		res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "voc_afbcd");
-		priv->base_afbcd = devm_ioremap_resource(dev, res);
-		if (IS_ERR(priv->base_afbcd))
-			return PTR_ERR(priv->base_afbcd);
-		gIoremapAfbcdArea		= (uintptr_t)priv->base_afbcd;
-		dev_info(dev, "[VOCD]gIoremapAfbcdArea=%lx in %s\n", gIoremapAfbcdArea, __func__);
-	}
-
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "voc_voc");
 	priv->base_voc = devm_ioremap_resource(dev, res);
 	if (IS_ERR(priv->base_voc))
@@ -1531,7 +1514,6 @@ const struct voc_data uniphier_ld20_data = {
 	.is_voc = true,
 	.type = VOC_TYPE_LD20,
 	.has_lvl = true,
-	.has_afbcd = true,
 	.param = { 0, 0, 0, 0 },
 };
 
@@ -1539,7 +1521,6 @@ const struct voc_data uniphier_ld11_data = {
 	.is_voc = true,
 	.type = VOC_TYPE_LD11,
 	.has_lvl = false,
-	.has_afbcd = false,
 	.param = { 0, 0, 0, 0 },
 };
 

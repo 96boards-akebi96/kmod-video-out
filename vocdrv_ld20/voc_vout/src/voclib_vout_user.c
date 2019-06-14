@@ -248,38 +248,6 @@ void voclib_lvl_maskwrite32(uintptr_t address, uint32_t mask, uint32_t data)
 	return;
 }
 
-uint32_t voclib_afbcd_read32(uintptr_t address)
-{
-	uint32_t ret;
-
-#ifdef VOCD_DEBUG
-	if( address < VOCD_AFBCD_REG_ADDR || address > (VOCD_AFBCD_REG_ADDR + VOCD_AFBCD_REG_SIZE) )
-	{
-		printk( "[VOCD]Error at %s, %d\n", __FUNCTION__, __LINE__ );
-		return( 0 );
-	}
-#endif
-
-	ret = ioread32( (void*)(gIoremapAfbcdArea + (address - VOCD_AFBCD_REG_ADDR)) );
-
-	return( ret );
-}
-
-void voclib_afbcd_write32(uintptr_t address, uint32_t data)
-{
-#ifdef VOCD_DEBUG
-	if( address < VOCD_AFBCD_REG_ADDR || address > (VOCD_AFBCD_REG_ADDR + VOCD_AFBCD_REG_SIZE) )
-	{
-		printk( "[VOCD]Error at %s, %d\n", __FUNCTION__, __LINE__ );
-		return;
-	}
-#endif
-
-	iowrite32( data, (void*)(gIoremapAfbcdArea + (address - VOCD_AFBCD_REG_ADDR)) );
-
-	return;
-}
-
 #else /* ifdef(VOCLIB_SLD11) */
 
 void voclib_sg_write32(uintptr_t address, uint32_t data)
