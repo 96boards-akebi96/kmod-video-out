@@ -1,0 +1,5 @@
+* video-out driver
+
+This is a video-out driver for UniPhier SoC, that supplies accessing hardware
+resources and managing interrupts to users. This driver can't display or control
+the screen alone, so this works with the userland middlewares.
